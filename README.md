@@ -198,6 +198,3 @@ Body: `{ "answer_id": number, "vote_type": "upvote" | "downvote" }`
 
 For support, contact: [johnysins09134@gmail.com](mailto:johnysins09134@gmail.com)
 
-## License
-
-MIT
