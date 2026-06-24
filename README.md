@@ -194,7 +194,7 @@ Body: `{ "answer_id": number, "vote_type": "upvote" | "downvote" }`
    - `VITE_API_URL=https://your-railway-app.railway.app/api`
 4. Deploy (Vercel will use `client/vercel.json`)
 
-## Support
+## Support hfdhfdfh
 
 For support, contact: [johnysins09134@gmail.com](mailto:johnysins09134@gmail.com)
 
