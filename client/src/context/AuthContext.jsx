@@ -16,6 +16,18 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
 
   useEffect(() => {
+    const handleForceLogout = () => {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+    return () => window.removeEventListener('auth:logout', handleForceLogout);
+  }, []);
+
+  useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
     } else {

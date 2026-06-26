@@ -12,6 +12,12 @@ db.exec(schema, (err) => {
   if (err) console.error('Schema init error:', err.message);
 });
 
+db.run("ALTER TABLE questions ADD COLUMN difficulty TEXT DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard'))", (err) => {
+  if (err && !err.message.includes('duplicate column')) {
+    console.error('Migration error:', err.message);
+  }
+});
+
 const authRoutes = require('./routes/authRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const answerRoutes = require('./routes/answerRoutes');

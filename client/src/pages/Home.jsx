@@ -12,12 +12,15 @@ const COMPANIES = [
   'Infosys', 'Wipro', 'Cognizant', 'Zoho', 'Freshworks',
 ];
 
+const DIFFICULTIES = ['easy', 'medium', 'hard'];
+
 export default function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [questions, setQuestions] = useState([]);
   const [trending, setTrending] = useState([]);
   const [companyQuestions, setCompanyQuestions] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searching, setSearching] = useState(false);
@@ -25,24 +28,34 @@ export default function Home() {
   const search = searchParams.get('search') || '';
   const tag = searchParams.get('tag') || '';
   const company = searchParams.get('company') || '';
-
-  const fetchQuestions = useCallback(async () => {
-    setLoading(true);
-    setSearching(!!search);
-    try {
-      const { data } = await getQuestions({ search, tag, company, page, limit: 10 });
-      setQuestions(data.questions);
-      setTotalPages(data.totalPages);
-    } catch (err) {
-      console.error('Failed to fetch questions:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [search, tag, company, page]);
+  const difficulty = searchParams.get('difficulty') || '';
+  const sort = searchParams.get('sort') || 'newest';
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    setSearching(!!search);
+
+    getQuestions({ search, tag, company, difficulty, sort, page, limit: 10 })
+      .then(({ data }) => {
+        if (!cancelled) {
+          setQuestions(data.questions);
+          setTotalPages(data.totalPages);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError('Failed to load questions.');
+          console.error('Failed to fetch questions:', err);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [search, tag, company, difficulty, sort, page]);
 
   useEffect(() => {
     getTrending({ limit: 5 })
@@ -51,49 +64,71 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!search && !tag && !company) {
+    if (!search && !tag && !company && !difficulty) {
+      let cancelled = false;
       const fetchCompanyQuestions = async () => {
         const results = {};
         const batch = COMPANIES.slice(0, 6);
         for (const c of batch) {
           try {
             const { data } = await getQuestionsByCompany(c);
-            if (data.length > 0) results[c] = data.slice(0, 3);
+            if (!cancelled && data.length > 0) results[c] = data.slice(0, 3);
           } catch { /* ignore */ }
         }
-        setCompanyQuestions(results);
+        if (!cancelled) setCompanyQuestions(results);
       };
       fetchCompanyQuestions();
+      return () => { cancelled = true; };
     }
-  }, [search, tag, company]);
+  }, [search, tag, company, difficulty]);
 
-  const handleSearch = (value) => {
-    const params = new URLSearchParams();
-    if (value) params.set('search', value);
-    setSearchParams(params);
+  const updateSearchParams = useCallback((updates) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+        else params.delete(key);
+      });
+      return params;
+    });
+  }, [setSearchParams]);
+
+  const handleSearch = useCallback((value) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      if (value) params.set('search', value);
+      else params.delete('search');
+      return params;
+    });
     setPage(1);
-  };
+  }, [setSearchParams]);
 
-  const handleTagClick = (tagName) => {
-    const params = new URLSearchParams();
-    params.set('tag', tagName);
-    setSearchParams(params);
+  const handleTagClick = useCallback((tagName) => {
+    updateSearchParams({ tag: tagName, search: undefined, company: undefined, difficulty: undefined });
     setPage(1);
-  };
+  }, [updateSearchParams]);
 
-  const handleCompanyClick = (companyName) => {
-    const params = new URLSearchParams();
-    params.set('company', companyName);
-    setSearchParams(params);
+  const handleCompanyClick = useCallback((companyName) => {
+    updateSearchParams({ company: companyName, search: undefined, tag: undefined, difficulty: undefined });
     setPage(1);
-  };
+  }, [updateSearchParams]);
 
-  const clearFilters = () => {
+  const handleDifficultyClick = useCallback((difficultyName) => {
+    updateSearchParams({ difficulty: difficultyName, search: undefined, tag: undefined, company: undefined });
+    setPage(1);
+  }, [updateSearchParams]);
+
+  const handleSortChange = useCallback((sortValue) => {
+    updateSearchParams({ sort: sortValue });
+    setPage(1);
+  }, [updateSearchParams]);
+
+  const clearFilters = useCallback(() => {
     setSearchParams({});
     setPage(1);
-  };
+  }, [setSearchParams]);
 
-  const hasActiveFilters = search || tag || company;
+  const hasActiveFilters = search || tag || company || difficulty;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -101,7 +136,7 @@ export default function Home() {
         <div className="lg:col-span-3">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              {company ? `${company} Interview Questions` : tag ? `Questions tagged: ${tag}` : search ? `Search results: "${search}"` : 'Interview Questions'}
+              {company ? `${company} Interview Questions` : tag ? `Questions tagged: ${tag}` : difficulty ? `${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Questions` : search ? `Search results: "${search}"` : 'Interview Questions'}
             </h1>
             <SearchBar onSearch={handleSearch} initialValue={search} />
             {hasActiveFilters && (
@@ -110,6 +145,45 @@ export default function Home() {
               </button>
             )}
           </div>
+
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {!company && (
+              <select
+                value={company}
+                onChange={(e) => e.target.value && handleCompanyClick(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">All Companies</option>
+                {COMPANIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
+            <select
+              value={difficulty}
+              onChange={(e) => e.target.value ? handleDifficultyClick(e.target.value) : clearFilters()}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="">All Difficulties</option>
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="most_viewed">Most Viewed</option>
+              <option value="most_answered">Most Answered</option>
+            </select>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">{error}</div>
+          )}
 
           {loading ? (
             <LoadingSpinner text={searching ? 'Searching...' : 'Loading questions...'} />

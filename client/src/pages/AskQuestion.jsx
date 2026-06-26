@@ -9,9 +9,11 @@ const COMPANY_OPTIONS = [
   'Infosys', 'Wipro', 'Cognizant', 'Zoho', 'Freshworks',
 ];
 
+const DIFFICULTY_OPTIONS = ['easy', 'medium', 'hard'];
+
 export default function AskQuestion() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ title: '', description: '', tags: '', company: '' });
+  const [form, setForm] = useState({ title: '', description: '', tags: '', company: '', difficulty: 'medium' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +32,7 @@ export default function AskQuestion() {
         description: form.description.trim(),
         tags,
         company: form.company,
+        difficulty: form.difficulty,
       });
       navigate(`/questions/${data.id}`);
     } catch (err) {
@@ -70,6 +73,19 @@ export default function AskQuestion() {
             >
               {COMPANY_OPTIONS.map((c) => (
                 <option key={c} value={c}>{c || '-- General Question --'}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+            <select
+              value={form.difficulty}
+              onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+            >
+              {DIFFICULTY_OPTIONS.map((d) => (
+                <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
               ))}
             </select>
           </div>

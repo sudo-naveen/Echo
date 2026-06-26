@@ -186,9 +186,13 @@ async function seed() {
 
   let qCount = 0;
   for (const q of questions) {
+    const difficulty = q.difficulty || (
+      q.tags.includes('algorithm') || q.tags.includes('system-design') ? 'hard' :
+      q.tags.includes('behavioral') || q.tags.includes('hr') ? 'easy' : 'medium'
+    );
     const result = await run(
-      'INSERT INTO questions (title, description, tags, company, status, user_id, views) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [q.title, q.description, q.tags, q.company, q.status, q.user_id, q.views]
+      'INSERT INTO questions (title, description, tags, company, status, difficulty, user_id, views) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [q.title, q.description, q.tags, q.company, q.status, difficulty, q.user_id, q.views]
     );
     if (result.changes > 0) qCount++;
   }

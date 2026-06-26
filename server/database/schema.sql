@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS questions (
   tags TEXT DEFAULT '',
   company TEXT DEFAULT '',
   status TEXT DEFAULT 'submitted' CHECK(status IN ('verified', 'community_verified', 'submitted')),
+  difficulty TEXT DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard')),
   user_id INTEGER NOT NULL,
   views INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS questions (
 
 CREATE INDEX IF NOT EXISTS idx_questions_company ON questions(company);
 CREATE INDEX IF NOT EXISTS idx_questions_status ON questions(status);
+CREATE INDEX IF NOT EXISTS idx_questions_difficulty ON questions(difficulty);
 CREATE INDEX IF NOT EXISTS idx_questions_user ON questions(user_id);
 CREATE INDEX IF NOT EXISTS idx_questions_created ON questions(created_at);
 

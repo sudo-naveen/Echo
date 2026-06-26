@@ -3,11 +3,13 @@ const Answer = require('../models/Answer');
 
 exports.getAll = async (req, res, next) => {
   try {
-    const { search, tag, company, page, limit } = req.query;
+    const { search, tag, company, difficulty, sort, page, limit } = req.query;
     const result = await Question.findAll({
       search,
       tag,
       company,
+      difficulty,
+      sort,
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
     });
@@ -39,13 +41,14 @@ exports.getById = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { title, description, tags, company } = req.body;
+    const { title, description, tags, company, difficulty } = req.body;
     const tagStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
     const question = await Question.create({
       title,
       description,
       tags: tagStr,
       company: company || '',
+      difficulty: difficulty || 'medium',
       user_id: req.user.id,
     });
     res.status(201).json(question);
@@ -64,9 +67,9 @@ exports.update = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized.' });
     }
 
-    const { title, description, tags, company } = req.body;
+    const { title, description, tags, company, difficulty } = req.body;
     const tagStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
-    await Question.update(req.params.id, { title, description, tags: tagStr, company });
+    await Question.update(req.params.id, { title, description, tags: tagStr, company, difficulty });
     res.json({ message: 'Question updated.' });
   } catch (err) {
     next(err);

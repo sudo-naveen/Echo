@@ -43,8 +43,8 @@ export default function VoteButtons({ answerId, initialUpvotes = 0, initialDownv
         }`}
         title="Upvote"
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 4l-8 8h16z" />
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
         </svg>
       </button>
 
@@ -59,8 +59,8 @@ export default function VoteButtons({ answerId, initialUpvotes = 0, initialDownv
         }`}
         title="Downvote"
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 20l8-8H4z" />
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
     </div>

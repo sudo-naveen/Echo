@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getQuestion, addAnswer, deleteQuestion, toggleBookmark } from '../services/questionService';
+import { getQuestion, addAnswer, deleteQuestion, toggleBookmark, getBookmarks } from '../services/questionService';
 import { useAuth } from '../hooks/useAuth';
 import AnswerCard from '../components/AnswerCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -49,11 +49,22 @@ export default function QuestionDetails() {
     fetchQuestion();
   }, [id]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      getBookmarks()
+        .then(({ data }) => {
+          const isBookmarked = data.some((b) => b.id === parseInt(id));
+          setBookmarked(isBookmarked);
+        })
+        .catch(() => {});
+    }
+  }, [isAuthenticated, id]);
+
   const handleDelete = async () => {
     if (!window.confirm('Delete this question permanently? This cannot be undone.')) return;
     try {
       await deleteQuestion(id);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
       setError('Failed to delete question.');
     }
@@ -126,7 +137,7 @@ export default function QuestionDetails() {
               className={`p-2 rounded-lg transition ${
                 bookmarked ? 'text-yellow-500 bg-yellow-50' : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'
               }`}
-              title="Bookmark"
+              title={bookmarked ? 'Remove bookmark' : 'Bookmark'}
             >
               <svg className="w-5 h-5" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />

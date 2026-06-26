@@ -43,7 +43,7 @@ function validateQuestion(req, res, next) {
   next();
 }
 
-function validateAnswer(req, res, next) {
+function validateAnswerCreate(req, res, next) {
   const { content, question_id } = req.body;
   if (!content || typeof content !== 'string' || content.trim().length < 2) {
     return res.status(400).json({ message: 'Answer content must be at least 2 characters.' });
@@ -54,4 +54,12 @@ function validateAnswer(req, res, next) {
   next();
 }
 
-module.exports = { validateRegistration, validateLogin, validateQuestion, validateAnswer };
+function validateAnswerUpdate(req, res, next) {
+  const { content } = req.body;
+  if (!content || typeof content !== 'string' || content.trim().length < 2) {
+    return res.status(400).json({ message: 'Answer content must be at least 2 characters.' });
+  }
+  next();
+}
+
+module.exports = { validateRegistration, validateLogin, validateQuestion, validateAnswerCreate, validateAnswerUpdate };

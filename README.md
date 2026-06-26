@@ -193,7 +193,3 @@ Body: `{ "answer_id": number, "vote_type": "upvote" | "downvote" }`
 3. Add environment variable:
    - `VITE_API_URL=https://your-railway-app.railway.app/api`
 4. Deploy (Vercel will use `client/vercel.json`)
-
-<<<<<<< HEAD
-
->>>>>>> refs/remotes/origin/main

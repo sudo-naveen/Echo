@@ -6,6 +6,29 @@ import { useAuth } from '../hooks/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { formatDate } from '../utils/helpers';
 
+const AVATAR_COLORS = [
+  '#4f46e5', '#7c3aed', '#db2777', '#dc2626',
+  '#ea580c', '#d97706', '#65a30d', '#059669',
+  '#0891b2', '#2563eb',
+];
+
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function generateAvatarSvg(name, size = 64) {
+  const color = getAvatarColor(name);
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}"/>
+    </svg>`
+  )}`;
+}
+
 export default function Profile() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -16,16 +39,24 @@ export default function Profile() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
+    let cancelled = false;
     Promise.all([getProfile(), getBookmarks()])
       .then(([profileRes, bookmarksRes]) => {
-        setProfile(profileRes.data);
-        setBookmarks(bookmarksRes.data);
+        if (!cancelled) {
+          setProfile(profileRes.data);
+          setBookmarks(bookmarksRes.data);
+        }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setProfile(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [isAuthenticated, navigate]);
 
   if (loading) return <LoadingSpinner />;
@@ -41,11 +72,11 @@ export default function Profile() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary-600">
-              {user?.username?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <img
+            src={generateAvatarSvg(profile.user.username, 64)}
+            alt={`${profile.user.username}'s avatar`}
+            className="w-16 h-16 rounded-full"
+          />
           <div>
             <h1 className="text-xl font-bold text-gray-900">{profile.user.username}</h1>
             <p className="text-sm text-gray-500">{profile.user.email}</p>

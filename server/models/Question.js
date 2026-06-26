@@ -1,14 +1,14 @@
 const db = require('../config/db');
 
 const Question = {
-  create({ title, description, tags, company, user_id }) {
+  create({ title, description, tags, company, difficulty, user_id }) {
     return new Promise((resolve, reject) => {
       db.run(
-        'INSERT INTO questions (title, description, tags, company, user_id) VALUES (?, ?, ?, ?, ?)',
-        [title, description, tags, company || '', user_id],
+        'INSERT INTO questions (title, description, tags, company, difficulty, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+        [title, description, tags, company || '', difficulty || 'medium', user_id],
         function (err) {
           if (err) return reject(err);
-          resolve({ id: this.lastID, title, description, tags, company, user_id });
+          resolve({ id: this.lastID, title, description, tags, company, difficulty, user_id });
         }
       );
     });
@@ -30,7 +30,7 @@ const Question = {
     });
   },
 
-  findAll({ search, tag, company, page = 1, limit = 10 }) {
+  findAll({ search, tag, company, difficulty, sort, page = 1, limit = 10 }) {
     return new Promise((resolve, reject) => {
       const offset = (page - 1) * limit;
       const where = [];
@@ -48,8 +48,17 @@ const Question = {
         where.push('q.company = ?');
         params.push(company);
       }
+      if (difficulty) {
+        where.push('q.difficulty = ?');
+        params.push(difficulty);
+      }
 
       const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+
+      let orderClause = 'ORDER BY q.created_at DESC';
+      if (sort === 'oldest') orderClause = 'ORDER BY q.created_at ASC';
+      else if (sort === 'most_viewed') orderClause = 'ORDER BY q.views DESC';
+      else if (sort === 'most_answered') orderClause = 'ORDER BY answer_count DESC';
 
       const countQuery = `SELECT COUNT(*) as total FROM questions q ${whereClause}`;
       const dataQuery = `
@@ -58,7 +67,7 @@ const Question = {
         FROM questions q
         JOIN users u ON q.user_id = u.id
         ${whereClause}
-        ORDER BY q.created_at DESC
+        ${orderClause}
         LIMIT ? OFFSET ?
       `;
 
@@ -130,11 +139,11 @@ const Question = {
     });
   },
 
-  update(id, { title, description, tags, company }) {
+  update(id, { title, description, tags, company, difficulty }) {
     return new Promise((resolve, reject) => {
       db.run(
-        'UPDATE questions SET title = ?, description = ?, tags = ?, company = ? WHERE id = ?',
-        [title, description, tags, company || '', id],
+        'UPDATE questions SET title = ?, description = ?, tags = ?, company = ?, difficulty = ? WHERE id = ?',
+        [title, description, tags, company || '', difficulty || 'medium', id],
         function (err) {
           if (err) return reject(err);
           resolve(this.changes);

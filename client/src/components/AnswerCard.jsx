@@ -8,16 +8,23 @@ export default function AnswerCard({ answer, onUpdate }) {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(answer.content);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const isOwner = user?.id === answer.user_id;
 
   const handleSave = async () => {
+    if (!content.trim()) return;
+    setSaving(true);
+    setError('');
     try {
       await updateAnswer(answer.id, { content });
       setEditing(false);
       onUpdate();
     } catch (err) {
-      console.error('Failed to update answer:', err);
+      setError(err.response?.data?.message || 'Failed to update answer.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -27,12 +34,15 @@ export default function AnswerCard({ answer, onUpdate }) {
       await deleteAnswer(answer.id);
       onUpdate();
     } catch (err) {
-      console.error('Failed to delete answer:', err);
+      setError('Failed to delete answer.');
     }
   };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
+      {error && (
+        <div className="mb-3 p-2 bg-red-50 text-red-700 text-xs rounded-lg">{error}</div>
+      )}
       <div className="flex gap-4">
         <VoteButtons
           answerId={answer.id}
@@ -50,10 +60,10 @@ export default function AnswerCard({ answer, onUpdate }) {
                 className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-y min-h-[100px]"
               />
               <div className="flex gap-2">
-                <button onClick={handleSave} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition">
-                  Save
+                <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition disabled:opacity-50">
+                  {saving ? 'Saving...' : 'Save'}
                 </button>
-                <button onClick={() => { setEditing(false); setContent(answer.content); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
+                <button onClick={() => { setEditing(false); setContent(answer.content); setError(''); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
                   Cancel
                 </button>
               </div>
