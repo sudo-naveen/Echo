@@ -71,8 +71,15 @@ export default function Home() {
         const batch = COMPANIES.slice(0, 6);
         for (const c of batch) {
           try {
-            const { data } = await getQuestionsByCompany(c);
-            if (!cancelled && data.length > 0) results[c] = data.slice(0, 3);
+           const { data } = await getQuestionsByCompany(c);
+
+const companyData = Array.isArray(data)
+  ? data
+  : (data?.questions || []);
+
+if (!cancelled && companyData.length > 0) {
+  results[c] = companyData.slice(0, 3);
+}
           } catch { /* ignore */ }
         }
         if (!cancelled) setCompanyQuestions(results);
