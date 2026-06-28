@@ -13,7 +13,13 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('token');
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     const handleForceLogout = () => {

@@ -40,8 +40,8 @@ export default function Home() {
     getQuestions({ search, tag, company, difficulty, sort, page, limit: 10 })
       .then(({ data }) => {
         if (!cancelled) {
-          setQuestions(data.questions);
-          setTotalPages(data.totalPages);
+          setQuestions(data?.questions ?? []);
+          setTotalPages(data?.totalPages ?? 1);
         }
       })
       .catch((err) => {
