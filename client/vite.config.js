@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'melodious-manifestation-production-388e.up.railway.app',
+        target: 'https://melodious-manifestation-production-388e.up.railway.app',
         changeOrigin: true,
       },
     },
