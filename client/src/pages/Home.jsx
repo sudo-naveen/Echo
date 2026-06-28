@@ -59,7 +59,7 @@ export default function Home() {
 
   useEffect(() => {
     getTrending({ limit: 5 })
-      .then(({ data }) => setTrending(data))
+      .then(({ data }) => setTrending(Array.isArray(data) ? data : []))
       .catch(() => {});
   }, []);
 
@@ -75,7 +75,9 @@ export default function Home() {
 
 const companyData = Array.isArray(data)
   ? data
-  : (data?.questions || []);
+  : Array.isArray(data?.questions)
+    ? data.questions
+    : [];
 
 if (!cancelled && companyData.length > 0) {
   results[c] = companyData.slice(0, 3);
@@ -314,10 +316,10 @@ if (!cancelled && companyData.length > 0) {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-bold text-gray-900">{c}</h3>
                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                      {qs ? `${qs.length}+ questions` : 'No questions'}
+                      {Array.isArray(qs) ? `${qs.length}+ questions` : 'No questions'}
                     </span>
                   </div>
-                  {qs ? (
+                  {Array.isArray(qs) && qs.length > 0 ? (
                     <ul className="space-y-2">
                       {qs.map((q) => (
                         <li key={q.id}>

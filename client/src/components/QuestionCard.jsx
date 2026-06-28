@@ -53,7 +53,7 @@ export default function QuestionCard({ question }) {
                 {question.company}
               </Link>
             )}
-            {tags.slice(0, 3).map((tag) => (
+            {(Array.isArray(tags) ? tags : []).slice(0, 3).map((tag) => (
               <Link
                 key={tag}
                 to={`/?tag=${encodeURIComponent(tag)}`}
