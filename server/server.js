@@ -43,8 +43,13 @@ app.use('/api/answers', answerRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/users', userRoutes);
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok' });
+app.post('/api/seed', async (_req, res) => {
+  try {
+    await require('./database/seed')();
+    res.json({ message: 'Database seeded successfully.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Seed failed: ' + err.message });
+  }
 });
 
 app.use(errorHandler);
