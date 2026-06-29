@@ -58,7 +58,7 @@ export default function Home() {
 
   useEffect(() => {
     getTrending({ limit: 5 })
-      .then(({ data }) => setTrending(data))
+      .then(({ data }) => setTrending(data?.questions || []))
       .catch(() => {});
   }, []);
 
