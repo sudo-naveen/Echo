@@ -7,7 +7,7 @@ import { formatDate } from '../utils/helpers';
 export default function AnswerCard({ answer, onUpdate }) {
   const { user } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState(answer.content);
+  const [content, setContent] = useState(answer?.content || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 

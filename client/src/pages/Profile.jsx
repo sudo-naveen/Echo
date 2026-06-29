@@ -46,8 +46,8 @@ export default function Profile() {
     Promise.all([getProfile(), getBookmarks()])
       .then(([profileRes, bookmarksRes]) => {
         if (!cancelled) {
-          setProfile(profileRes.data);
-          setBookmarks(bookmarksRes.data);
+          setProfile(profileRes?.data || null);
+          setBookmarks(Array.isArray(bookmarksRes?.data) ? bookmarksRes.data : []);
         }
       })
       .catch(() => {

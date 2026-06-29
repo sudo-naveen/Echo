@@ -40,14 +40,13 @@ export default function Home() {
     getQuestions({ search, tag, company, difficulty, sort, page, limit: 10 })
       .then(({ data }) => {
         if (!cancelled) {
-          setQuestions(data?.questions ?? []);
-          setTotalPages(data?.totalPages ?? 1);
+          setQuestions(data.questions);
+          setTotalPages(data.totalPages);
         }
       })
       .catch((err) => {
         if (!cancelled) {
           setError('Failed to load questions.');
-          console.error('Failed to fetch questions:', err);
         }
       })
       .finally(() => {
@@ -59,7 +58,7 @@ export default function Home() {
 
   useEffect(() => {
     getTrending({ limit: 5 })
-      .then(({ data }) => setTrending(Array.isArray(data) ? data : []))
+      .then(({ data }) => setTrending(data))
       .catch(() => {});
   }, []);
 
@@ -75,9 +74,7 @@ export default function Home() {
 
 const companyData = Array.isArray(data)
   ? data
-  : Array.isArray(data?.questions)
-    ? data.questions
-    : [];
+  : (data?.questions || []);
 
 if (!cancelled && companyData.length > 0) {
   results[c] = companyData.slice(0, 3);
@@ -211,7 +208,7 @@ if (!cancelled && companyData.length > 0) {
             </div>
           ) : (
             <div className="space-y-4">
-              {questions.map((q) => (
+              {questions.filter(Boolean).map((q) => (
                 <QuestionCard key={q.id} question={q} />
               ))}
 
@@ -284,11 +281,11 @@ if (!cancelled && companyData.length > 0) {
 
           <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-24">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Trending</h2>
-            {trending.length === 0 ? (
+            {!trending || trending.length === 0 ? (
               <p className="text-sm text-gray-400">No trending questions yet.</p>
             ) : (
               <ul className="space-y-3">
-                {trending.slice(0, 5).map((q) => (
+                {(trending || []).slice(0, 5).map((q) => (
                   <li key={q.id}>
                     <Link
                       to={`/questions/${q.id}`}
@@ -296,7 +293,7 @@ if (!cancelled && companyData.length > 0) {
                     >
                       {q.title}
                     </Link>
-                    <span className="text-xs text-gray-400 block mt-0.5">{q.views} views</span>
+                    <span className="text-xs text-gray-400 block mt-0.5">{q.views || 0} views</span>
                   </li>
                 ))}
               </ul>
@@ -311,17 +308,18 @@ if (!cancelled && companyData.length > 0) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {COMPANIES.map((c) => {
               const qs = companyQuestions[c];
+              const qsList = Array.isArray(qs) ? qs : [];
               return (
                 <div key={c} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-bold text-gray-900">{c}</h3>
                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-                      {Array.isArray(qs) ? `${qs.length}+ questions` : 'No questions'}
+                      {qs ? `${qs.length}+ questions` : 'No questions'}
                     </span>
                   </div>
-                  {Array.isArray(qs) && qs.length > 0 ? (
+                  {qs ? (
                     <ul className="space-y-2">
-                      {qs.map((q) => (
+                      {qsList.map((q) => (
                         <li key={q.id}>
                           <Link
                             to={`/questions/${q.id}`}

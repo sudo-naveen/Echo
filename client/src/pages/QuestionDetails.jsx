@@ -35,11 +35,18 @@ export default function QuestionDetails() {
   const fetchQuestion = async () => {
     try {
       const { data } = await getQuestion(id);
-      setQuestion(data);
-      setAnswers(data.answers || []);
+      if (!data) {
+        setQuestion(null);
+        setAnswers([]);
+      } else {
+        setQuestion(data);
+        setAnswers(data.answers || []);
+      }
       setError('');
     } catch (err) {
       setError('Failed to load question.');
+      setQuestion(null);
+      setAnswers([]);
     } finally {
       setLoading(false);
     }
@@ -53,7 +60,8 @@ export default function QuestionDetails() {
     if (isAuthenticated) {
       getBookmarks()
         .then(({ data }) => {
-          const isBookmarked = data.some((b) => b.id === parseInt(id));
+          const list = Array.isArray(data) ? data : [];
+          const isBookmarked = list.some((b) => b.id === parseInt(id));
           setBookmarked(isBookmarked);
         })
         .catch(() => {});

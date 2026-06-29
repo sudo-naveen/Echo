@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register as registerApi } from '../services/authService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Register() {
-  const { initializeAuth, isAuthenticated } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
@@ -21,8 +20,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const { data } = await registerApi(form);
-      initializeAuth(data);
+      await register(form);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
