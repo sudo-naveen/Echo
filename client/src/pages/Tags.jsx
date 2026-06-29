@@ -9,7 +9,7 @@ export default function Tags() {
 
   useEffect(() => {
     getTags()
-      .then(({ data }) => setTags(data))
+      .then(({ data }) => setTags(data?.tags || data || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

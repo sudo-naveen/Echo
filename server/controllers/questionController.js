@@ -13,7 +13,12 @@ exports.getAll = async (req, res, next) => {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
     });
-    res.json(result);
+    res.json({
+      questions: result.questions || [],
+      total: result.total || 0,
+      page: result.page || 1,
+      totalPages: result.totalPages || 1,
+    });
   } catch (err) {
     next(err);
   }
@@ -27,11 +32,11 @@ exports.getById = async (req, res, next) => {
     }
 
     await Question.incrementViews(req.params.id);
-    question.views += 1;
+    question.views = (question.views || 0) + 1;
 
     const user_id = req.user ? req.user.id : null;
     const answers = await Answer.findByQuestionId(req.params.id, user_id);
-    question.answers = answers;
+    question.answers = answers || [];
 
     res.json(question);
   } catch (err) {
@@ -51,7 +56,7 @@ exports.create = async (req, res, next) => {
       difficulty: difficulty || 'medium',
       user_id: req.user.id,
     });
-    res.status(201).json(question);
+    res.status(201).json({ question, message: 'Question created successfully.' });
   } catch (err) {
     next(err);
   }
@@ -96,7 +101,7 @@ exports.delete = async (req, res, next) => {
 exports.getTrending = async (req, res, next) => {
   try {
     const questions = await Question.getTrending(parseInt(req.query.limit) || 10);
-    res.json(questions);
+    res.json({ questions: questions || [] });
   } catch (err) {
     next(err);
   }
@@ -105,7 +110,7 @@ exports.getTrending = async (req, res, next) => {
 exports.getTags = async (req, res, next) => {
   try {
     const tags = await Question.getTags();
-    res.json(tags);
+    res.json({ tags: tags || [] });
   } catch (err) {
     next(err);
   }
@@ -118,7 +123,7 @@ exports.getByCompany = async (req, res, next) => {
       return res.status(400).json({ message: 'Company parameter required.' });
     }
     const questions = await Question.getByCompany(company);
-    res.json(questions);
+    res.json({ questions: questions || [], company });
   } catch (err) {
     next(err);
   }
@@ -127,7 +132,7 @@ exports.getByCompany = async (req, res, next) => {
 exports.getCompanies = async (_req, res, next) => {
   try {
     const companies = await Question.getCompanies();
-    res.json(companies);
+    res.json({ companies: companies || [] });
   } catch (err) {
     next(err);
   }

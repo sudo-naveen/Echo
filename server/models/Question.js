@@ -37,8 +37,8 @@ const Question = {
       const params = [];
 
       if (search) {
-        where.push('(q.title LIKE ? OR q.description LIKE ? OR q.company LIKE ?)');
-        params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+        where.push('(q.title LIKE ? OR q.description LIKE ? OR q.company LIKE ? OR q.tags LIKE ?)');
+        params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
       }
       if (tag) {
         where.push('q.tags LIKE ?');
@@ -93,12 +93,27 @@ const Question = {
           (SELECT COUNT(*) FROM answers WHERE question_id = q.id) as answer_count
          FROM questions q
          JOIN users u ON q.user_id = u.id
-         ORDER BY q.views DESC, answer_count DESC
+         ORDER BY (q.views * 3 + answer_count * 5 + q.id) DESC, q.created_at DESC
          LIMIT ?`,
         [limit],
         (err, rows) => {
-          if (err) return reject(err);
-          resolve(rows);
+          if (err) {
+            db.all(
+              `SELECT q.*, u.username,
+                (SELECT COUNT(*) FROM answers WHERE question_id = q.id) as answer_count
+               FROM questions q
+               JOIN users u ON q.user_id = u.id
+               ORDER BY q.created_at DESC
+               LIMIT ?`,
+              [limit],
+              (err2, rows2) => {
+                if (err2) return reject(err2);
+                resolve(rows2);
+              }
+            );
+          } else {
+            resolve(rows);
+          }
         }
       );
     });

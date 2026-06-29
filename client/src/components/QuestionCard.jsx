@@ -17,6 +17,7 @@ function StatusBadge({ status }) {
 }
 
 export default function QuestionCard({ question }) {
+  if (!question) return null;
   const tags = parseTags(question.tags);
 
   return (
@@ -41,7 +42,7 @@ export default function QuestionCard({ question }) {
           </div>
 
           <p className="text-sm text-gray-500 line-clamp-2">
-            {truncate(question.description, 250)}
+            {truncate(question.description || '', 250)}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">

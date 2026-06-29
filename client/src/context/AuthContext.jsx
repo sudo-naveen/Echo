@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
-import { login as loginApi } from '../services/authService';
+import { login as loginApi, register as registerApi } from '../services/authService';
 
 export const AuthContext = createContext(null);
 
@@ -51,12 +51,26 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const { data } = await loginApi(credentials);
+    if (!data || !data.token) {
+      throw new Error('Invalid response from server.');
+    }
+    setToken(data.token);
+    setUser(data.user);
+    return data;
+  }, []);
+
+  const register = useCallback(async (userData) => {
+    const { data } = await registerApi(userData);
+    if (!data || !data.token) {
+      throw new Error('Invalid response from server.');
+    }
     setToken(data.token);
     setUser(data.user);
     return data;
   }, []);
 
   const initializeAuth = useCallback((data) => {
+    if (!data || !data.token) return;
     setToken(data.token);
     setUser(data.user);
   }, []);
@@ -68,7 +82,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
   }, []);
 
-  const value = { user, token, login, logout, initializeAuth, isAuthenticated: !!token };
+  const value = { user, token, login, register, logout, initializeAuth, isAuthenticated: !!token };
 
   return (
     <AuthContext.Provider value={value}>

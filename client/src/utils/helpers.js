@@ -1,4 +1,5 @@
 export function formatDate(dateStr) {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now - date;

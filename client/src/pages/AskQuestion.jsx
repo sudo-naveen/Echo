@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createQuestion } from '../services/questionService';
+import { useAuth } from '../hooks/useAuth';
 
 const COMPANY_OPTIONS = [
   '', 'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple',
@@ -13,9 +14,16 @@ const DIFFICULTY_OPTIONS = ['easy', 'medium', 'hard'];
 
 export default function AskQuestion() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [form, setForm] = useState({ title: '', description: '', tags: '', company: '', difficulty: 'medium' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +42,12 @@ export default function AskQuestion() {
         company: form.company,
         difficulty: form.difficulty,
       });
-      navigate(`/questions/${data.id}`);
+      const questionId = data?.question?.id || data?.id;
+      if (questionId) {
+        navigate(`/questions/${questionId}`);
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create question.');
     } finally {
