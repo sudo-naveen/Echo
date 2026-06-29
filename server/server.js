@@ -43,7 +43,7 @@ app.use('/api/answers', answerRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/users', userRoutes);
 
-app.post('/api/seed', async (_req, res) => {
+app.get('/api/seed', async (_req, res) => {
   try {
     await require('./database/seed')();
     res.json({ message: 'Database seeded successfully.' });
