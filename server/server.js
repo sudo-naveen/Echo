@@ -20,7 +20,7 @@ db.run("ALTER TABLE questions ADD COLUMN difficulty TEXT DEFAULT 'medium' CHECK(
 
 db.get('SELECT COUNT(*) as count FROM questions', (err, row) => {
   if (!err && row && row.count === 0) {
-    require('./database/seed')().catch((e) => console.error('Auto-seed error:', e.message));
+    require('./database/seed')(db).catch((e) => console.error('Auto-seed error:', e.message));
   }
 });
 
@@ -43,9 +43,13 @@ app.use('/api/answers', answerRoutes);
 app.use('/api/votes', voteRoutes);
 app.use('/api/users', userRoutes);
 
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/seed', async (_req, res) => {
   try {
-    await require('./database/seed')();
+    await require('./database/seed')(db);
     res.json({ message: 'Database seeded successfully.' });
   } catch (err) {
     res.status(500).json({ message: 'Seed failed: ' + err.message });
